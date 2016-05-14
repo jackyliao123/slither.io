@@ -22,7 +22,7 @@ public class SlitherCanvas extends Canvas implements MouseListener, MouseMotionL
 	public boolean mouseDown;
 
 	public BufferStrategy bs;
-	public BufferedImage backgroundImage;
+//	public BufferedImage backgroundImage;
 
 	public Color[] colors = new Color[]{
 			new Color(192, 128, 255),
@@ -101,13 +101,13 @@ public class SlitherCanvas extends Canvas implements MouseListener, MouseMotionL
 		bs = this.getBufferStrategy();
 	}
 
-	public void loadImages() {
-		try {
-			backgroundImage = ImageIO.read(getClass().getResourceAsStream("/bg45.jpg"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	public void loadImages() {
+//		try {
+//			backgroundImage = ImageIO.read(getClass().getResourceAsStream("/bg45.jpg"));
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 
 	public void render() {

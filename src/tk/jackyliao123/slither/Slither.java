@@ -12,7 +12,8 @@ import java.util.HashSet;
 
 public class Slither {
 
-	public URI serverURI;
+	public String serverHost;
+	public int serverPort;
 	public SlitherMessageProcessor messageProcessor;
 	public SlitherClient slitherClient;
 
@@ -82,24 +83,25 @@ public class Slither {
 	public long lastPing;
 	public long lastInput;
 
-	public Slither(URI serverURI, String username, int skin) {
-		this.serverURI = serverURI;
+	public Slither(String serverHost, int serverPort, String username, int skin) {
+		this.serverHost = serverHost;
+		this.serverPort = serverPort;
 		generateConstants();
-		messageProcessor = new SlitherMessageProcessor(this, serverURI, username, skin);
+		messageProcessor = new SlitherMessageProcessor(this, serverHost, serverPort, username, skin);
 		slitherClient = new SlitherClient(this);
 	}
 
 	public void generateConstants() {
-		for(int i = 0; i < hfc; ++i) {
+		for (int i = 0; i < hfc; ++i) {
 			hfas[i] = 0.5 * (1.0 - Math.cos(Math.PI * (hfc - 1.0 - i) / (hfc - 1.0)));
 		}
-		for(int i = 0; i < afc; ++i) {
+		for (int i = 0; i < afc; ++i) {
 			afas[i] = 0.5 * (1.0 - Math.cos(Math.PI * (afc - 1.0 - i) / (afc - 1.0)));
 		}
-		for(int i = 0; i < rfc; ++i) {
+		for (int i = 0; i < rfc; ++i) {
 			rfas[i] = 0.5 * (1.0 - Math.cos(Math.PI * (rfc - 1.0 - i) / (rfc - 1.0)));
 		}
-		for(int i = 0; i < lfc; ++i) {
+		for (int i = 0; i < lfc; ++i) {
 			lfas[i] = 0.5 * (1.0 - Math.cos(Math.PI * (lfc - 1.0 - i) / (lfc - 1.0)));
 		}
 	}
@@ -110,11 +112,11 @@ public class Slither {
 			fmlts = new double[mscps + 2049];
 			fpsls = new double[mscps + 2049];
 			for (int b = 0; b <= mscps; b++) {
-				if(b >= mscps)
+				if (b >= mscps)
 					fmlts[b] = fmlts[b - 1];
 				else
 					fmlts[b] = Math.pow(1.0 - b * 1.0 / mscps, 2.25);
-				if(0 == b)
+				if (0 == b)
 					fpsls[b] = 0;
 				else
 					fpsls[b] = fpsls[b - 1] + 1.0 / fmlts[b - 1];
@@ -126,54 +128,14 @@ public class Slither {
 		}
 	}
 
-	public static void main(String[] args) throws Exception{
+	public static void main(String[] args) throws Exception {
 		System.setProperty("sun.java2d.opengl", "true");
 		System.setProperty("sun.java2d.d3d", "false");
 		System.setProperty("sun.java2d.noddraw", "true");
-		Slither slither = new Slither(new URI("ws://185.50.104.174:443/slither"), "testBot", 15);
+		Slither slither = new Slither("45.58.115.162", 444, "testBot", 15);
 		SlitherUI ui = new SlitherUI(slither);
 		slither.slitherClient.controller = new HumanController(slither, ui);
 		ui.start();
-
-//		int ns = 10;
-//
-//		Slither[] slithers = new Slither[ns];
-//
-//		for(int i = 0; i < 5; ++i) {
-//			slithers[i] = new Slither(new URI("ws://149.56.20.72:443/slither"), "testBot", 15);
-//			slithers[i].slitherClient.controller = new MoveToTargetController(slither);
-//			if(i == 0) {
-//				SlitherUI udi = new SlitherUI(slithers[i]);
-//				udi.start();
-//			}
-//		}
-//
-//		System.setProperty("http.proxyHost", "127.0.0.1");
-//		System.setProperty("http.proxyPort", "1080");
-//
-//		for(int i = 0; i < 5; ++i) {
-//			slithers[i + 5] = new Slither(new URI("ws://149.56.20.72:443/slither"), "testBot", 15);
-//			slithers[i + 5].slitherClient.controller = new MoveToTargetController(slither);
-//		}
-//
-//		Thread.sleep(1000);
-//
-//		while(true) {
-//			for(int i = 0; i < ns; ++i) {
-//				MoveToTargetController ctx = ((MoveToTargetController)slithers[i].slitherClient.controller);
-//				ctx.targetX = slither.player.x;
-//				ctx.targetY = slither.player.y;
-//				System.out.println("update");
-//				if(i != 0) {
-//					slithers[i].slitherClient.update();
-//					if (!slithers[i].playing) {
-//						slithers[i] = new Slither(new URI("ws://149.56.20.72:443/slither"), "testBot", 15);
-//						slithers[i].slitherClient.controller = new MoveToTargetController(slither);
-//						System.out.println("restarted");
-//					}
-//				}
-//			}
-//		}
 
 	}
 

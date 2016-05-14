@@ -37,13 +37,17 @@ public class PathFindingController extends Controller {
 
 	public Snake player;
 
+	public boolean runningSubcontroller;
+
 	public PathFindingController(Slither slither) {
 		super(slither);
+		subController = new CollectFoodController(slither);
 	}
 
 	public PathFindingController(Slither slither, Snake player) {
 		super(slither);
 		this.player = player;
+		subController = new CollectFoodController(slither);
 	}
 
 //	public static class QuadTree {
@@ -114,6 +118,10 @@ public class PathFindingController extends Controller {
 		text.add("Danger Level: " + dangerLevel);
 		text.add("Time: " + pathFindingTime + "ms");
 		text.add("Nearby Snakes: " + snakeCount);
+		if(runningSubcontroller) {
+			text.add("Subcontroller: " + subController.getClass().getSimpleName());
+			subController.drawText(text);
+		}
 	}
 
 	public void updatePointsAndBounds() {
@@ -267,6 +275,14 @@ public class PathFindingController extends Controller {
 
 			dangerLevel = dangerMultiplier / distance;
 
+			if(distance > 400) {
+				runningSubcontroller = true;
+				subController.update();
+				return;
+			} else {
+				runningSubcontroller = false;
+			}
+
 //			while(hypSq(x - targetX, y - targetY) < 4000000) {
 //				targetX = Math.random() * 40000;
 //				targetY = Math.random() * 40000;
@@ -309,9 +325,9 @@ public class PathFindingController extends Controller {
 				if(!visited.containsKey(pg)) {
 					visited.put(pg, node);
 				} else {
-//					PathFindNode prev = visited.get(p);
+//					PathFindNode prev = visited.get(pg);
 //					if(prev.length > node.length) {
-//						visited.put(p, node);
+//						visited.put(pg, node);
 //					} else {
 //						continue;
 //					}
@@ -320,7 +336,7 @@ public class PathFindingController extends Controller {
 
 				double moveDist = Math.max(gridSize / 2, Math.min(node.dist / 2, Math.sqrt(hypSq(tempTargetX - node.x, tempTargetY - node.y)) + 100));
 
-				int sections = 32;
+				int sections = 8;
 
 				for(int i = 0; i < sections; ++i) {
 					double dx = Math.cos(Math.PI * 2 * i / sections);
@@ -371,6 +387,10 @@ public class PathFindingController extends Controller {
 	}
 
 	public void render(Graphics g, double ox, double oy) {
+		if(runningSubcontroller) {
+			subController.render(g, ox, oy);
+			return;
+		}
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setStroke(new BasicStroke(5));
 		for (Snake s : slither.snakes.values()) {

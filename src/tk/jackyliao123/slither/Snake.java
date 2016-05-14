@@ -23,7 +23,7 @@ public class Snake {
 
 	public double ang;
 	public double wang;
-	public double eang; //Eye angle
+	public double eang;
 	public int dir;
 
 	public double sp = 2;
@@ -49,6 +49,9 @@ public class Snake {
 	public double[] fys;
 	public double[] fchls;
 
+	public int flpos;
+	public double[] fls;
+
 	public double fchl;
 	public int ftg;
 
@@ -56,28 +59,17 @@ public class Snake {
 
 	public double tl;
 
-	public int flpos;
-	public double[] fls;
-
 	public boolean dead;
-
 	public double tsp;
-
 	public double sfr;
-
 	public double fltg;
-
 	public double fl;
-
 	public double cfl;
-
 	public double ehang;
 	public double wehang;
-
 	public int edir;
 
 	public double sep;
-
 	public double pma = 2.3; //TODO SKIN
 
 	public double rex;
@@ -109,10 +101,10 @@ public class Snake {
 		tl = length + fam;
 		f = tl - f;
 		int b = flpos;
-		for(int h = 0; h < slither.lfc; ++h) {
+		for (int h = 0; h < slither.lfc; ++h) {
 			fls[b] -= f * slither.lfas[h];
 			++b;
-			if(b >= slither.lfc)
+			if (b >= slither.lfc)
 				b = 0;
 		}
 		fl = fls[flpos];
@@ -138,8 +130,6 @@ public class Snake {
 		public int eiu;
 		public double ebx;
 		public double eby;
-
-		public double da;
 
 		public BodySection(double x, double y) {
 			this.x = x;

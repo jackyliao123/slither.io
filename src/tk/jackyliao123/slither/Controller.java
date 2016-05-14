@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 public abstract class Controller {
 	public Slither slither;
+
 	public Controller(Slither slither) {
 		this.slither = slither;
 	}

@@ -6,7 +6,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 public class SlitherUI {
 
@@ -34,7 +33,7 @@ public class SlitherUI {
 
 	public class SwitchListener extends KeyAdapter {
 		public void keyPressed(KeyEvent e) {
-			switch(e.getKeyCode()) {
+			switch (e.getKeyCode()) {
 				case KeyEvent.VK_S:
 					slither.slitherClient.controller = new SpinController(slither);
 					break;
@@ -47,15 +46,14 @@ public class SlitherUI {
 				case KeyEvent.VK_P:
 					PathFindingController contr = new PathFindingController(slither);
 					slither.slitherClient.controller = contr;
-					contr.subController = new HumanController(slither, SlitherUI.this);
 					break;
 				case KeyEvent.VK_C:
 					slither.slitherClient.controller = new CollectFoodController(slither);
 					break;
 				case KeyEvent.VK_B: {
-					new Thread (){
+					new Thread() {
 						public void run() {
-							final Slither s = new Slither(slither.serverURI, "testBotHelper", 14);
+							final Slither s = new Slither(slither.serverHost, slither.serverPort, "testBotHelper", 14);
 							s.slitherClient.controller = new PathFindingController(s, slither.player);
 							new Thread() {
 								public void run() {
@@ -90,15 +88,18 @@ public class SlitherUI {
 
 	public static class FPSThread extends Thread {
 		public SlitherUI slitherUI;
+
 		public FPSThread(SlitherUI slitherUI) {
 			this.setName("FPS counter");
 			this.slitherUI = slitherUI;
 		}
+
 		public void run() {
-			while(true) {
+			while (true) {
 				try {
 					Thread.sleep(1000);
-				} catch(InterruptedException e){}
+				} catch (InterruptedException e) {
+				}
 				slitherUI.slitherCanvas.fps = slitherUI.slitherCanvas.frameCount;
 				slitherUI.slitherCanvas.frameCount = 0;
 			}
@@ -117,7 +118,7 @@ public class SlitherUI {
 		}
 
 		public void run() {
-			while(true) {
+			while (true) {
 				long startTime = System.currentTimeMillis();
 				slitherUI.update();
 				long endTime = System.currentTimeMillis();
@@ -125,8 +126,8 @@ public class SlitherUI {
 				double delay = 1000.0 / targetFPS;
 				try {
 					Thread.sleep(Math.round(Math.max(0, delay - delta)));
+				} catch (InterruptedException e) {
 				}
-				catch(InterruptedException e){}
 			}
 		}
 	}

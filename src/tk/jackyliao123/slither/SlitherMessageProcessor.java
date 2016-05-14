@@ -1,21 +1,24 @@
 package tk.jackyliao123.slither;
 
-import javax.websocket.*;
+import tk.jackyliao123.websocket.WebSocketClient;
+import tk.jackyliao123.websocket.WebSocketClientProcessor;
+import tk.jackyliao123.websocket.WebSocketListener;
+
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.net.URI;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-public class SlitherMessageProcessor extends Endpoint implements MessageHandler.Whole<ByteBuffer> {
+public class SlitherMessageProcessor extends WebSocketListener {
 
 	public Slither slither;
 
-	public Session session;
+	public WebSocketClientProcessor processor;
 
 	public String username;
 	public int skin;
@@ -30,13 +33,31 @@ public class SlitherMessageProcessor extends Endpoint implements MessageHandler.
 
 	public boolean connected;
 
-	public SlitherMessageProcessor(Slither slither, URI serverURI, String username, int skin) {
+	public long lastPing;
+	public long ping;
+
+	public SlitherMessageProcessor(Slither slither, String serverHost, int serverPort, String username, int skin) {
 		this.slither = slither;
 		this.username = username;
 		this.skin = skin;
 		try {
-			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-			container.connectToServer(this, ClientEndpointConfig.Builder.create().configurator(new SlitherConfigurator()).build(), serverURI);
+
+
+			HashMap<String, String> headers = new HashMap<String, String>();
+
+			headers.put("Origin", "http://slither.io");
+			headers.put("Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits");
+			headers.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36");
+
+			Socket socket = new Socket(serverHost, serverPort);
+			WebSocketClient client = new WebSocketClient(socket.getInputStream(), socket.getOutputStream(), serverHost + ":" + serverPort, "/slither", headers);
+			processor = new WebSocketClientProcessor(client, this, true);
+			processor.start();
+
+			System.out.println("Connected");
+			sendInit();
+			connected = true;
+
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -49,24 +70,11 @@ public class SlitherMessageProcessor extends Endpoint implements MessageHandler.
 		toSend[1] = 0x07;
 		toSend[2] = (byte) skin;
 		System.arraycopy(user, 0, toSend, 3, user.length);
-		session.getAsyncRemote().sendBinary(ByteBuffer.wrap(toSend));
+		processor.sendBinary(toSend);
 	}
 
 	@Override
-	public void onOpen(Session session, EndpointConfig endpointConfig) {
-		this.session = session;
-		session.addMessageHandler(this);
-		try {
-			System.out.println("Connected");
-			sendInit();
-			connected = true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void onClose(Session session, CloseReason closeReason) {
+	public void onClose() {
 		slither.playing = false;
 		connected = false;
 	}
@@ -93,10 +101,10 @@ public class SlitherMessageProcessor extends Endpoint implements MessageHandler.
 	}
 
 	@Override
-	public void onMessage(ByteBuffer buffer) {
+	public void onBinary(byte[] buf) {
 		try {
 			synchronized (slither) {
-				this.buffer = buffer;
+				buffer = ByteBuffer.wrap(buf);
 				lastTime = currentTime;
 				currentTime = System.currentTimeMillis();
 				int b = int16();
@@ -311,7 +319,7 @@ public class SlitherMessageProcessor extends Endpoint implements MessageHandler.
 		System.out.println("version = " + version);
 		if (version != 8) {
 			try {
-				session.close();
+				processor.close();
 			} catch (Exception e) {
 			}
 			throw new RuntimeException("Unsupported server version: " + version);
@@ -329,6 +337,7 @@ public class SlitherMessageProcessor extends Endpoint implements MessageHandler.
 
 	public void pong(int packetType /* p */) {
 		slither.wfpr = false;
+		ping = System.currentTimeMillis() - lastPing;
 		if (slither.lagging) {
 			slither.etm *= slither.lag_mult;
 			slither.lagging = false;
@@ -642,32 +651,18 @@ public class SlitherMessageProcessor extends Endpoint implements MessageHandler.
 	public void sendInput() {
 		byte angle = (byte) ((((slither.angle / (2.0 * Math.PI)) % 1 + 1) % 1) * 250);
 		if (angle != lastSentAngle) {
-			session.getAsyncRemote().sendBinary(ByteBuffer.wrap(new byte[]{angle}));
+			processor.sendBinary(new byte[]{angle});
 			lastSentAngle = angle;
 		}
 		if (lastBoost != slither.boost) {
-			session.getAsyncRemote().sendBinary(ByteBuffer.wrap(new byte[]{(byte) (slither.boost ? 253 : 254)}));
+			processor.sendBinary(new byte[]{(byte) (slither.boost ? 253 : 254)});
 			lastBoost = slither.boost;
 		}
 	}
 
 	public void ping() {
-		session.getAsyncRemote().sendBinary(ByteBuffer.wrap(new byte[]{(byte) 251}));
-	}
-
-	public static class SlitherConfigurator extends ClientEndpointConfig.Configurator {
-		@Override
-		public void beforeRequest(Map<String, List<String>> headers) {
-			header(headers, "Origin", "http://slither.io");
-			header(headers, "Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits");
-			header(headers, "User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36");
-		}
-
-		public static void header(Map<String, List<String>> headers, String key, String value) {
-			List<String> val = new ArrayList<String>();
-			val.add(value);
-			headers.put(key, val);
-		}
+		lastPing = System.currentTimeMillis();
+		processor.sendBinary(new byte[]{(byte) 251});
 	}
 
 }

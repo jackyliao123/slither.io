@@ -89,7 +89,7 @@ public class SlitherCanvas extends Canvas implements MouseListener, MouseMotionL
 	public SlitherCanvas(Slither slither) {
 		this.slither = slither;
 
-		loadImages();
+//		loadImages();
 
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
@@ -115,7 +115,7 @@ public class SlitherCanvas extends Canvas implements MouseListener, MouseMotionL
 		g.setColor(new Color(255, 0, 0));
 		g.fillRect(0, 0, getWidth(), getHeight());
 		try {
-			synchronized(slither) {
+			synchronized (slither) {
 				slither.gsc += (targScale - slither.gsc) / 5;
 				slither.slitherClient.update();
 				redraw(g);
@@ -275,15 +275,15 @@ public class SlitherCanvas extends Canvas implements MouseListener, MouseMotionL
 				g2d.draw(path);
 
 				Font prevFont = g2d.getFont();
-				g2d.setFont(prevFont.deriveFont((float)(prevFont.getSize2D() * scale * 3)));
+				g2d.setFont(prevFont.deriveFont((float) (prevFont.getSize2D() * scale * 3)));
 				FontMetrics fm = g2d.getFontMetrics();
 
-				if(snake != slither.player) {
+				if (snake != slither.player) {
 					String str = snake.name;
 					int sw = fm.stringWidth(str);
 					int sh = fm.getHeight();
-					int x = (int)((snake.x + snake.fx - ox) * scale) - sw / 2;
-					int y = (int)((snake.y + snake.fy - oy + 100) * scale) + sh / 2;
+					int x = (int) ((snake.x + snake.fx - ox) * scale) - sw / 2;
+					int y = (int) ((snake.y + snake.fy - oy + 100) * scale) + sh / 2;
 					g2d.setColor(Color.black);
 					g2d.drawString(str, x + 1, y + 1);
 					g2d.drawString(str, x + 1, y - 1);
@@ -298,25 +298,24 @@ public class SlitherCanvas extends Canvas implements MouseListener, MouseMotionL
 			}
 		}
 
-		if(slither.leaderboard != null) {
+		if (slither.leaderboard != null) {
 
 			FontMetrics fm = g2d.getFontMetrics();
 
 			int width = getWidth();
 			g2d.setColor(new Color(32, 32, 32, 128));
 			g2d.fillRect(width - 260, 4, 256, (fm.getHeight() + 4) * slither.leaderboard.size() + fm.getHeight() / 2 + 2);
-			for(int i = 0; i < slither.leaderboard.size(); ++i) {
+			for (int i = 0; i < slither.leaderboard.size(); ++i) {
 				PlayerScore score = slither.leaderboard.get(i);
-				int size = (int)(15 * (slither.fpsls[score.length] + score.fam / slither.fmlts[score.length] - 1) - 5);
+				int size = (int) (15 * (slither.fpsls[score.length] + score.fam / slither.fmlts[score.length] - 1) - 5);
 
 				Font prevFont = g2d.getFont();
 
 				Color c = colors[getColorIndex(score.skin)];
-				if(i + 1 == slither.leaderboardRank) {
+				if (i + 1 == slither.leaderboardRank) {
 					g2d.setColor(c.brighter());
 					g2d.setFont(prevFont.deriveFont(Font.BOLD));
-				}
-				else {
+				} else {
 					g2d.setColor(c.darker());
 				}
 
@@ -336,9 +335,10 @@ public class SlitherCanvas extends Canvas implements MouseListener, MouseMotionL
 
 		ArrayList<String> text = new ArrayList<String>();
 		text.add("FPS: " + fps);
-		if(slither.player != null) {
+		text.add("Ping: " + slither.messageProcessor.ping);
+		if (slither.player != null) {
 			text.add("Length: " + Math.floor(150 * (slither.fpsls[slither.player.length] + slither.player.fam / slither.fmlts[slither.player.length] - 1) - 50) / 10.0);
-			if(slither.leaderboard != null) {
+			if (slither.leaderboard != null) {
 				text.add("Rank: " + slither.playerRank + "/" + slither.numPlayers);
 			}
 		}
